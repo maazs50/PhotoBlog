@@ -57,7 +57,9 @@ public class RegisterActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         if (task.isSuccessful()) {
-                                          sendToMain();
+                                          Intent intent=new Intent(RegisterActivity.this,SetupActivity.class);
+                                          startActivity(intent);
+                                          finish();
                                         } else {
                                             // If sign in fails, display a message to the user.
 

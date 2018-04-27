@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
           case R.id.action_logout_btn:
           logout();
           return true;
+          case R.id.action_settings_btn:
+              sendToSetup();
+              return true;
           default:
               return false;
       }
@@ -63,5 +66,10 @@ public class MainActivity extends AppCompatActivity {
         mAuth.signOut();
 
         sendToLogin();
+    }
+    public void sendToSetup(){
+        Intent intent=new Intent(MainActivity.this,SetupActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
