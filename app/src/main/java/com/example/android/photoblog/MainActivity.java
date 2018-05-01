@@ -1,11 +1,13 @@
 package com.example.android.photoblog;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -13,13 +15,20 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     Toolbar mainToolbar;
-
+    private FloatingActionButton addPostBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
         mainToolbar=findViewById(R.id.main_toolbar);
+        addPostBtn=findViewById(R.id.add_post_btn);
+        addPostBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this,NewPostActivity.class));
+            }
+        });
         setSupportActionBar(mainToolbar);
         getSupportActionBar().setTitle("PhotoBlog");
     }
