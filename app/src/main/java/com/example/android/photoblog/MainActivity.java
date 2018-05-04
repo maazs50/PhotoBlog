@@ -1,6 +1,7 @@
 package com.example.android.photoblog;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,17 +9,25 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     Toolbar mainToolbar;
     private FloatingActionButton addPostBtn;
+    private FirebaseFirestore firebaseFirestore;
+    private String  current_user_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        firebaseFirestore=FirebaseFirestore.getInstance();
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
         mainToolbar=findViewById(R.id.main_toolbar);
@@ -39,6 +48,24 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser currentUser=mAuth.getCurrentUser();
         if (currentUser==null){
             sendToLogin();
+        }
+        else
+            {
+                //sending to the setup activity if the profile pic is not set
+            current_user_id=mAuth.getCurrentUser().getUid();
+            firebaseFirestore.collection("Users").document(current_user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()){
+                        if (!task.getResult().exists()){
+                            sendToSetup();
+                        }
+                    }else{
+                        String error=task.getException().toString();
+                        Toast.makeText(MainActivity.this,error,Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
 
     }
