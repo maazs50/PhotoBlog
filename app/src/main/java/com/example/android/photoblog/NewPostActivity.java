@@ -1,6 +1,7 @@
 package com.example.android.photoblog;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -28,14 +31,23 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import id.zelory.compressor.Compressor;
 
 public class NewPostActivity extends AppCompatActivity {
     Toolbar newPostToolbar;
     private ImageView newPostImage;
+    private static final int MAX_LENGTH=100;
     private EditText newPostDesc;
     private Button newPostBtn;
+    private Bitmap compressedImageFile;
     private Uri postImageUri;
     private ProgressBar newPostProgress;
     private FirebaseFirestore firebaseFirestore;
@@ -57,7 +69,7 @@ public class NewPostActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore=FirebaseFirestore.getInstance();
         mAuth=FirebaseAuth.getInstance();
-
+        current_user_id=mAuth.getCurrentUser().getUid();
         newPostImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,30 +88,57 @@ public class NewPostActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(desc)&&newPostImage!=null){
 
                     newPostProgress.setVisibility(View.VISIBLE);
-                    String randonName= FieldValue.serverTimestamp().toString();
+                    final String randonName= UUID.randomUUID().toString();
                     StorageReference filePath=storageReference.child("post_images").child(randonName+".jpg");
                     filePath.putFile(postImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                        if (task.isSuccessful()){
-                           current_user_id=mAuth.getCurrentUser().getUid();
-                           String downloadUri=task.getResult().getDownloadUrl().toString();
-                           Map<String, Object> postMap=new HashMap<>();
-                           postMap.put("image_url",downloadUri);
-                           postMap.put("desc",desc);
-                           postMap.put("user_id",current_user_id);
-                           postMap.put("Timestamp",FieldValue.serverTimestamp());
-                           firebaseFirestore.collection("Posts").add(postMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                           File newImageFile=new File(postImageUri.getPath());
+                           try {
+                               compressedImageFile = new Compressor(NewPostActivity.this).compressToBitmap(newImageFile);
+
+                           }
+                           catch (IOException e){
+                                e.printStackTrace();
+                           }
+                           ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                           compressedImageFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                           byte[] thumbData = baos.toByteArray();
+                           UploadTask uploadTask=storageReference.child("post_images/thumbs").child(randonName+".jpg").putBytes(thumbData);
+                           uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                @Override
-                               public void onComplete(@NonNull Task<DocumentReference> task) {
-                                    if (task.isSuccessful()){
-                                        Toast.makeText(NewPostActivity.this,"Post was added",Toast.LENGTH_SHORT).show();
-                                    sendToMain();
-                                    }else{
+                               public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                   String downloadUri=taskSnapshot.getDownloadUrl().toString();
+                                   Map<String, Object> postMap=new HashMap<>();
+                                   postMap.put("image_url",downloadUri);
+                                   postMap.put("desc",desc);
+                                   postMap.put("user_id",current_user_id);
+                                   postMap.put("Timestamp",FieldValue.serverTimestamp());
+                                   firebaseFirestore.collection("Posts").add(postMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                       @Override
+                                       public void onComplete(@NonNull Task<DocumentReference> task) {
+                                           if (task.isSuccessful()){
+                                               Toast.makeText(NewPostActivity.this,"Post was added",Toast.LENGTH_SHORT).show();
+                                               sendToMain();
+                                           }else{
+                                               String error=task.getException().toString();
+                                               Toast.makeText(NewPostActivity.this,error,Toast.LENGTH_SHORT).show();
+
+                                           }
+                                           newPostProgress.setVisibility(View.INVISIBLE);
+                               }
+                           });
 
 
-                                    }
-                                   newPostProgress.setVisibility(View.INVISIBLE);
+
+
+                               }
+                           }).addOnFailureListener(new OnFailureListener() {
+                               @Override
+                               public void onFailure(@NonNull Exception e) {
+                                   String error=e.toString();
+                                   Toast.makeText(NewPostActivity.this,error,Toast.LENGTH_SHORT).show();
                                }
                            });
                        }
@@ -137,5 +176,16 @@ public class NewPostActivity extends AppCompatActivity {
         Intent mainIntent=new Intent(NewPostActivity.this,MainActivity.class);
         startActivity(mainIntent);
         finish();
+    }
+    public static String random() {
+        Random generator = new Random();
+        StringBuilder randomStringBuilder = new StringBuilder();
+        int randomLength = generator.nextInt(MAX_LENGTH);
+        char tempChar;
+        for (int i = 0; i < randomLength; i++){
+            tempChar = (char) (generator.nextInt(96) + 32);
+            randomStringBuilder.append(tempChar);
+        }
+        return randomStringBuilder.toString();
     }
 }
