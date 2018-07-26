@@ -2,7 +2,9 @@ package com.example.android.photoblog;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -10,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import android.support.v4.app.Fragment;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -24,6 +27,11 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton addPostBtn;
     private FirebaseFirestore firebaseFirestore;
     private String  current_user_id;
+    private BottomNavigationView mainbottomNav;
+    private HomeFragment homeFragment;
+    private AccountFragment accountFragment;
+    private NotificationFragment notificationFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +40,29 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mainToolbar=findViewById(R.id.main_toolbar);
         addPostBtn=findViewById(R.id.add_post_btn);
+        mainbottomNav=findViewById(R.id.mainBottomNav);
+        homeFragment=new HomeFragment();
+        accountFragment = new AccountFragment();
+        notificationFragment=new NotificationFragment();
+        mainbottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+              switch (item.getItemId()){
+                  case R.id.bottom_action_home:
+                      replaceFragment(homeFragment);
+                      return true;
+                  case R.id.bottom_action_account:
+                      replaceFragment(accountFragment);
+                      return true;
+                  case R.id.bottom_action_notif:
+                      replaceFragment(notificationFragment);
+                      return true;
+
+                  default:
+                      return false;
+              }
+            }
+        });
         addPostBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -40,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         });
         setSupportActionBar(mainToolbar);
         getSupportActionBar().setTitle("PhotoBlog");
+
+
     }
     @Override
     public void onStart() {
@@ -106,5 +139,11 @@ public class MainActivity extends AppCompatActivity {
         Intent intent=new Intent(MainActivity.this,SetupActivity.class);
         startActivity(intent);
         finish();
+    }
+    public void replaceFragment(Fragment fragment){
+        FragmentTransaction fragmentTransaction=getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.main_container,fragment);
+        fragmentTransaction.commit();
+
     }
 }

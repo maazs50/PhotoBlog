@@ -29,6 +29,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore:11.8.0'
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     implementation 'id.zelory:compressor:2.1.0'
+    implementation 'com.android.support:support-v4:27.1.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
     compile 'id.zelory:compressor:2.1.0'
     //All the fire base versions should be same
