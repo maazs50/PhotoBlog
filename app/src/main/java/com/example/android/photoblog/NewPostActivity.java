@@ -3,9 +3,9 @@ package com.example.android.photoblog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -28,8 +28,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
-
-import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -110,11 +108,15 @@ public class NewPostActivity extends AppCompatActivity {
                                @Override
                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                    String downloadUri=taskSnapshot.getDownloadUrl().toString();
+                                   String downloadthumbUri = taskSnapshot.getDownloadUrl().toString();
+
                                    Map<String, Object> postMap=new HashMap<>();
                                    postMap.put("image_url",downloadUri);
                                    postMap.put("desc",desc);
+                                   postMap.put("image_thumb", downloadthumbUri);
+
                                    postMap.put("user_id",current_user_id);
-                                   postMap.put("Timestamp",FieldValue.serverTimestamp());
+                                   postMap.put("timestamp",FieldValue.serverTimestamp());
                                    firebaseFirestore.collection("Posts").add(postMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                                        @Override
                                        public void onComplete(@NonNull Task<DocumentReference> task) {
