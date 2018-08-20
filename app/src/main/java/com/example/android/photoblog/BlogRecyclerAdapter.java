@@ -1,6 +1,7 @@
 package com.example.android.photoblog;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
@@ -85,9 +86,16 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             }
         });
 
+        try {
             long millisecond = blogList.get(position).getTimestamp().getTime();
             String dateString = DateFormat.format("MM/dd/yyyy", new Date(millisecond)).toString();
             holder.setTime(dateString);
+        } catch (Exception e) {
+
+            Toast.makeText(context, "Exception : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+        }
+
         //Get likes
             firebaseFirestore.collection("Posts/"+blogPostId+"/Likes").document(currentUserId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
                 @Override
@@ -133,6 +141,14 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                 });
             }
         });
+        holder.blogCommentBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent commentIntent=new Intent(context, CommentsActivity.class);
+                commentIntent.putExtra("blog_post_id",blogPostId);
+                context.startActivity(commentIntent);
+            }
+        });
     }
 
     @Override
@@ -147,7 +163,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
         private TextView blogDate;
         private TextView blogUserName;
         private CircleImageView blogUserImage;
-
+        private ImageView blogCommentBtn;
         private TextView blogLikeCount;
         private ImageView blogLikeBtn;
         public ViewHolder(View itemView) {
@@ -155,6 +171,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             mView=itemView;
 
             blogLikeBtn = mView.findViewById(R.id.blog_like_btn);
+            blogCommentBtn = mView.findViewById(R.id.blog_comment_icon);
 
         }
         public void setDescText(String text){
