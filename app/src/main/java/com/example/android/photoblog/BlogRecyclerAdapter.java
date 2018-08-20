@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +17,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -51,6 +53,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        holder.setIsRecyclable(false);
         final String blogPostId=blogList.get(position).BlogPostId;
         final String currentUserId=firebaseAuth.getCurrentUser().getUid();
         String desc=blogList.get(position).getDesc();
@@ -85,15 +88,49 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             long millisecond = blogList.get(position).getTimestamp().getTime();
             String dateString = DateFormat.format("MM/dd/yyyy", new Date(millisecond)).toString();
             holder.setTime(dateString);
+        //Get likes
+            firebaseFirestore.collection("Posts/"+blogPostId+"/Likes").document(currentUserId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                @Override
+                public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+               if (documentSnapshot.exists()){
+                   holder.blogLikeBtn.setImageDrawable(context.getDrawable(R.mipmap.action_like_accent));
 
+               }else{
+                   holder.blogLikeBtn.setImageDrawable(context.getDrawable(R.mipmap.action_like_gray));
+               }
+
+                }
+            });
+            //Get likes count
+        firebaseFirestore.collection("Posts/"+blogPostId+"/Likes").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+           if (!documentSnapshots.isEmpty())  {
+               int count=documentSnapshots.size();
+               holder.updateLikesCount(count);
+           }else{
+               holder.updateLikesCount(0);
+           }
+            }
+        });
 
         holder.blogLikeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Test","This is working");
-                Map<String,Object> likeMap=new HashMap<>();
-                likeMap.put("timestamp", FieldValue.serverTimestamp());
-                firebaseFirestore.collection("Posts/" + blogPostId + "/Likes").document(currentUserId).set(likeMap);
+                firebaseFirestore.collection("Posts/"+blogPostId+"/Likes").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                   if (!task.getResult().exists()){
+
+                       Map<String,Object> likeMap=new HashMap<>();
+                       likeMap.put("timestamp", FieldValue.serverTimestamp());
+                       firebaseFirestore.collection("Posts/" + blogPostId + "/Likes").document(currentUserId).set(likeMap);
+                   }
+                   else{
+                       firebaseFirestore.collection("Posts/"+blogPostId+"/Likes").document(currentUserId).delete();
+                   }
+                    }
+                });
             }
         });
     }
@@ -152,6 +189,10 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
         public void setTime(String time) {
             blogDate=mView.findViewById(R.id.blog_date);
             blogDate.setText(time);
+        }
+        public void updateLikesCount(int count){
+            blogLikeCount=mView.findViewById(R.id.blog_like_count);
+            blogLikeCount.setText(count+" Likes");
         }
     }
 }
