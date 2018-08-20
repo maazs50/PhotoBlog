@@ -51,6 +51,7 @@ public class NewPostActivity extends AppCompatActivity {
     private FirebaseFirestore firebaseFirestore;
     private StorageReference storageReference;
     private FirebaseAuth mAuth;
+
     String current_user_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
