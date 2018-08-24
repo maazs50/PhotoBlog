@@ -1,15 +1,11 @@
 package com.example.android.photoblog;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -17,52 +13,65 @@ public class CommentsRecyclerAdapter extends RecyclerView.Adapter<CommentsRecycl
 
     public List<Comments> commentsList;
     public Context context;
-    private FirebaseFirestore firebaseFirestore;
-    private FirebaseAuth firebaseAuth;
-
 
     public CommentsRecyclerAdapter(List<Comments> commentsList){
-        this.commentsList=commentsList;
+
+        this.commentsList = commentsList;
+
     }
+
     @Override
-    public CommentsRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.comments_list_item,parent,false);
-        context=parent.getContext();
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.comment_list_item, parent, false);
         context = parent.getContext();
-        return new CommentsRecyclerAdapter.ViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CommentsRecyclerAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+
         holder.setIsRecyclable(false);
-        String commentMessage=commentsList.get(position).getMessage();
-       holder.setComment_message(commentMessage);
+
+        String commentMessage = commentsList.get(position).getMessage();
+        holder.setComment_message(commentMessage);
 
     }
+
 
     @Override
     public int getItemCount() {
-       if (commentsList!=null){
-           return commentsList.size();
 
-       }
-       else{
-           return 0;
+        if(commentsList != null) {
 
-       }
+            return commentsList.size();
+
+        } else {
+
+            return 0;
+
+        }
+
     }
-    public class ViewHolder extends RecyclerView.ViewHolder{
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+
         private View mView;
+
         private TextView comment_message;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            mView=itemView;
+            mView = itemView;
         }
 
-        public void setComment_message(String message) {
+        public void setComment_message(String message){
+
             comment_message = mView.findViewById(R.id.comment_message);
             comment_message.setText(message);
+
         }
+
     }
+
 }

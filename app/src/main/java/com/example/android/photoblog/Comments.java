@@ -3,6 +3,20 @@ package com.example.android.photoblog;
 import java.util.Date;
 
 public class Comments {
+
+    private String message, user_id;
+    private Date timestamp;
+
+    public Comments(){
+
+    }
+
+    public Comments(String message, String user_id, Date timestamp) {
+        this.message = message;
+        this.user_id = user_id;
+        this.timestamp = timestamp;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -11,28 +25,19 @@ public class Comments {
         this.message = message;
     }
 
-    public String getUser_d() {
-        return user_d;
+    public String getUser_id() {
+        return user_id;
     }
 
-    public void setUser_d(String user_d) {
-        this.user_d = user_d;
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
-    public Date getTimeStamp() {
-        return timeStamp;
+    public Date getTimestamp() {
+        return timestamp;
     }
 
-    public void setTimeStamp(Date timeStamp) {
-        this.timeStamp = timeStamp;
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
-
-    public Comments(String message, String user_d, Date timeStamp) {
-        this.message = message;
-        this.user_d = user_d;
-        this.timeStamp = timeStamp;
-    }
-
-    private String message,user_d;
-    private Date timeStamp;
 }
